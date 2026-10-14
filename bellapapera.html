@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organizer Locale & Utility - IE11</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background-color: #f7f9fa;
+            color: #201f1e;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 750px;
+            margin: 0 auto;
+        }
+        .header {
+            background-color: #842dce; /* Viola scuro */
+            color: white;
+            padding: 20px;
+            border-radius: 3px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .card {
+            background: #ffffff;
+            padding: 20px;
+            border: 1px solid #e1dfdd;
+            border-radius: 3px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        h2 {
+            margin-top: 0;
+            color: #842dce;
+            border-bottom: 2px solid #842dce;
+            padding-bottom: 5px;
+        }
+        input[type="text"], select {
+            width: 80%;
+            padding: 8px;
+            margin: 8px 0;
+            border: 1px solid #a19f9d;
+            font-size: 14px;
+        }
+        button {
+            background-color: #842dce;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+        button:hover {
+            background-color: #6621a3;
+        }
+        button.btn-scarica {
+            background-color: #107c41; /* Verde per il download */
+        }
+        button.btn-scarica:hover {
+            background-color: #0b5930;
+        }
+        .lista-output {
+            margin-top: 15px;
+            background: #f3f2f1;
+            padding: 10px;
+            min-height: 50px;
+            border: 1px dashed #a19f9d;
+        }
+        .voce-lista {
+            padding: 4px 0;
+            border-bottom: 1px solid #edebe9;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Organizer Personale & Utility</h1>
+        <p>Salvataggio diretto su PC senza uso di memoria locale (IE11 OK)</p>
+    </div>
+
+    <!-- GESTORE LISTE CON DOWNLOAD TXT -->
+    <div class="card">
+        <h2>📝 Creatore di Elenchi / Cose da Fare</h2>
+        <p>Aggiungi gli elementi alla lista e scaricali in un file di testo sul tuo computer.</p>
+        <input type="text" id="inputVoce" placeholder="Scrivi una voce (es. Comprare il pane)...">
+        <button id="btnAggiungi">Aggiungi</button>
+        
+        <div class="lista-output" id="scatolaLista">
+            <!-- Le voci appariranno qui -->
+        </div>
+        
+        <div style="margin-top: 15px;">
+            <button id="btnScarica" class="btn-scarica">💾 Scarica Lista sul PC (.txt)</button>
+            <button id="btnSvuotaLista" style="background-color: #a80000;">Svuota Lista</button>
+        </div>
+    </div>
+
+    <!-- UTILITY EXTRA 1: GENERATORE PASSWORD -->
+    <div class="card">
+        <h2>🔑 Generatore di Password Sicure</h2>
+        <label>Lunghezza caratteri:</label>
+        <select id="infoLunghezza">
+            <option value="8">8 Caratterit</option>
+            <option value="12" selected>12 Caratteri</option>
+            <option value="16">16 Caratteri</option>
+        </select><br>
+        <button id="btnGeneraPass">Genera Password</button>
+        <p>Password generata: <input type="text" id="outputPass" readonly style="width: 50%; font-family: monospace; background:#f3f2f1;"></p>
+    </div>
+
+    <!-- UTILITY EXTRA 2: SELETTORE COLORI HEX -->
+    <div class="card">
+        <h2>🎨 Convertitore Palette Colori Basici</h2>
+        <p>Scegli una tonalità per vedere il rispettivo codice HEX da usare nei tuoi siti:</p>
+        <select id="selettoreColore">
+            <option value="#0078d4">Blu Microsoft (#0078d4)</option>
+            <option value="#107c41">Verde Office (#107c41)</option>
+            <option value="#d83b01">Arancione Outlook (#d83b01)</option>
+            <option value="#fcd116">Giallo Sole (#fcd116)</option>
+            <option value="#201f1e">Nero Antracite (#201f1e)</option>
+        </select>
+        <div id="anteprimaColore" style="margin-top:10px; width:100px; height:40px; border:1px solid #000; background-color:#0078d4;"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    // --- array in memoria volatile (si svuota se ricarichi la pagina, zero localStorage) ---
+    var elencoElementi = [];
+    var inputVoce = document.getElementById("inputVoce");
+    var scatolaLista = document.getElementById("scatolaLista");
+
+    // Funzione per ridisegnare la lista a schermo
+    function aggiornaInterfacciaLista() {
+        if (elencoElementi.length === 0) {
+            scatolaLista.innerHTML = "<em>Nessun elemento nella lista.</em>";
+            return;
+        }
+        
+        var htmlAccumulato = "";
+        for (var i = 0; i < elencoElementi.length; i++) {
+            htmlAccumulato += "<div class='voce-lista'>• " + elencoElementi[i] + "</div>";
+        }
+        scatolaLista.innerHTML = htmlAccumulato;
+    }
+    aggiornaInterfacciaLista();
+
+    // Aggiungi elemento alla lista
+    document.getElementById("btnAggiungi").addEventListener("click", function() {
+        var testo = inputVoce.value.trim();
+        if (testo !== "") {
+            elencoElementi.push(testo);
+            inputVoce.value = "";
+            aggiornaInterfacciaLista();
+        }
+    });
+
+    // Svuota lista completa
+    document.getElementById("btnSvuotaLista").addEventListener("click", function() {
+        elencoElementi = [];
+        aggiornaInterfacciaLista();
+    });
+
+    // --- FUNZIONE DA DOWNLOAD COMPATIBILE CON IE11 ---
+    document.getElementById("btnScarica").addEventListener("click", function() {
+        if (elencoElementi.length === 0) {
+            alert("La lista è vuota, non c'è nulla da scaricare!");
+            return;
+        }
+
+        // Uniamo le voci inserendo un a capo tra ognuna
+        var testoFile = "LA MIA LISTA DI COSE DA FARE\r\n";
+        testoFile += "Generata il: " + new Date().toLocaleString() + "\r\n";
+        testoFile += "===================================\r\n\r\n";
+        
+        for (var i = 0; i < elencoElementi.length; i++) {
+            testoFile += (i + 1) + ". " + elencoElementi[i] + "\r\n";
+        }
+
+        // Metodo esclusivo e nativo per Internet Explorer 11 per far scaricare file
+        if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+            var blob = new Blob([testoFile], { type: "text/plain;charset=utf-8;" });
+            window.navigator.msSaveOrOpenBlob(blob, "lista-promemoria.txt");
+        } else {
+            // Alternativa standard per i browser moderni (se testi lo script altrove)
+            var elementoAncorato = document.createElement("a");
+            elementoAncorato.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(testoFile));
+            elementoAncorato.setAttribute("download", "lista-promemoria.txt");
+            elementoAncorato.style.display = "none";
+            document.body.appendChild(elementoAncorato);
+            elementoAncorato.click();
+            document.body.removeChild(elementoAncorato);
+        }
+    });
+
+    // --- UTILITY 1: GENERATORE PASSWORD ---
+    document.getElementById("btnGeneraPass").addEventListener("click", function() {
+        var lunghezza = parseInt(document.getElementById("infoLunghezza").value);
+        var caratteri ="ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$";
+        var passwordGenerata = "";
+        
+        for (var i = 0; i < lunghezza; i++) {
+            var indiceCasuale = Math.floor(Math.random() * caratteri.length);
+            passwordGenerata += caratteri.charAt(indiceCasuale);
+        }
+        document.getElementById("outputPass").value = passwordGenerata;
+    });
+
+    // --- UTILITY 2: GESTORE ANTEPRIMA COLORE ---
+    var selettoreColore = document.getElementById("selettoreColore");
+    var anteprimaColore = document.getElementById("anteprimaColore");
+    
+    selettoreColore.addEventListener("change", function() {
+        anteprimaColore.style.backgroundColor = selettoreColore.value;
+    });
+</script>
+
+</body>
+</html>
